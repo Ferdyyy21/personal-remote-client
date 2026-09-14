@@ -17,16 +17,25 @@ const rightClickBtn = document.getElementById('rightClickBtn');
 const hiddenInput = document.getElementById('hiddenInput');
 const videoStatus = document.getElementById('videoStatus');
 
-// STUN handles most home NATs. The turn: entries are a free public relay
-// (Metered's Open Relay Project) used only as a fallback when a direct
+// STUN handles most home NATs. TURN (fetched fresh below, from a personal
+// free Metered.ca account) is the fallback used only when a direct
 // connection can't be established (e.g. some cellular/carrier NATs) —
 // traffic through it stays DTLS/SRTP-encrypted end-to-end.
-const ICE_SERVERS = [
-  { urls: 'stun:stun.relay.metered.ca:80' },
-  { urls: 'turn:global.relay.metered.ca:80', username: 'openrelayproject', credential: 'openrelayproject' },
-  { urls: 'turn:global.relay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' },
-  { urls: 'turn:global.relay.metered.ca:443?transport=tcp', username: 'openrelayproject', credential: 'openrelayproject' },
-];
+const TURN_CREDENTIALS_URL = 'https://personalremote.metered.live/api/v1/turn/credentials?apiKey=39d97e2cda50091f871c8da81fcba980cec0';
+const FALLBACK_ICE_SERVERS = [{ urls: 'stun:stun.l.google.com:19302' }];
+
+async function getIceServers() {
+  try {
+    const res = await fetch(TURN_CREDENTIALS_URL);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const servers = await res.json();
+    if (!Array.isArray(servers) || !servers.length) throw new Error('empty response');
+    return servers;
+  } catch (err) {
+    console.error('Could not fetch TURN credentials, falling back to STUN only:', err.message);
+    return FALLBACK_ICE_SERVERS;
+  }
+}
 
 let peer = null;
 let conn = null;
@@ -58,9 +67,10 @@ function send(obj) {
   if (conn && conn.open) conn.send(obj);
 }
 
-function connect(code) {
+async function connect(code) {
   setConnectStatus('Connecting…');
-  peer = new Peer({ debug: 1, config: { iceServers: ICE_SERVERS } });
+  const iceServers = await getIceServers();
+  peer = new Peer({ debug: 1, config: { iceServers } });
 
   const openTimeout = setTimeout(() => {
     setConnectStatus('Still trying to reach the signaling server after 10s with no error — this network is likely blocking it. Try switching Wi-Fi/mobile data, or a different network.', true);
