@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <title>Personal Remote</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="connectScreen" class="connect-screen">
+    <div class="connect-card">
+      <h1>Personal Remote</h1>
+      <p>Enter your Personal Remote password</p>
+      <input id="codeInput" inputmode="numeric" maxlength="9" placeholder="000000000" autocomplete="off" />
+      <button id="connectBtn">Connect</button>
+      <p id="connectStatus" class="connect-status"></p>
+    </div>
+  </div>
+
+  <div id="remoteScreen" class="remote-screen" hidden>
+    <video id="remoteVideo" autoplay playsinline muted></video>
+    <div id="videoStatus" class="video-status">Waiting for video…</div>
+    <div id="touchSurface" class="touch-surface"></div>
+
+    <div id="leftJoystick" class="joystick" hidden>
+      <div class="joystick-knob"></div>
+    </div>
+    <div id="rightJoystick" class="joystick" hidden>
+      <div class="joystick-knob"></div>
+    </div>
+
+    <div class="toolbar-group">
+      <div class="toolbar">
+        <button id="leftClickBtn" class="tool-btn">Left Click</button>
+        <button id="rightClickBtn" class="tool-btn">Right Click</button>
+      </div>
+      <div class="toolbar">
+        <button id="modePointerBtn" class="tool-btn active" data-mode="pointer">Pointer</button>
+        <button id="modeTouchBtn" class="tool-btn" data-mode="touch">Touch</button>
+        <button id="modeJoystickBtn" class="tool-btn" data-mode="joystick">Joystick</button>
+        <button id="keyboardBtn" class="tool-btn">Keyboard</button>
+        <button id="disconnectBtn" class="tool-btn danger">✕</button>
+      </div>
+    </div>
+
+    <input id="hiddenInput" class="hidden-input" autocapitalize="off" autocomplete="off" autocorrect="off" spellcheck="false" />
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
