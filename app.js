@@ -62,7 +62,12 @@ function connect(code) {
   setConnectStatus('Connecting…');
   peer = new Peer({ debug: 1, config: { iceServers: ICE_SERVERS } });
 
+  const openTimeout = setTimeout(() => {
+    setConnectStatus('Still trying to reach the signaling server after 10s with no error — this network is likely blocking it. Try switching Wi-Fi/mobile data, or a different network.', true);
+  }, 10000);
+
   peer.on('open', (id) => {
+    clearTimeout(openTimeout);
     setConnectStatus('Signaling connected (' + id + '). Reaching PC…');
     conn = peer.connect(code, { reliable: true });
 
@@ -145,6 +150,7 @@ function connect(code) {
   });
 
   peer.on('error', (err) => {
+    clearTimeout(openTimeout);
     setConnectStatus('Could not connect: ' + err.type, true);
   });
 }
