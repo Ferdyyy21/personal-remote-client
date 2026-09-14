@@ -62,7 +62,8 @@ function connect(code) {
   setConnectStatus('Connecting…');
   peer = new Peer({ debug: 1, config: { iceServers: ICE_SERVERS } });
 
-  peer.on('open', () => {
+  peer.on('open', (id) => {
+    setConnectStatus('Signaling connected (' + id + '). Reaching PC…');
     conn = peer.connect(code, { reliable: true });
 
     conn.on('open', () => {
@@ -84,6 +85,24 @@ function connect(code) {
     conn.on('error', (err) => {
       setConnectStatus('Connection error: ' + err, true);
     });
+
+    // Report live WebRTC negotiation state so a stuck connection is visible
+    // instead of silently hanging on "Connecting…".
+    setTimeout(() => {
+      const pc = conn.peerConnection;
+      if (!pc) {
+        setConnectStatus('No peerConnection formed for data channel', true);
+        return;
+      }
+      const report = () => {
+        if (conn.open) return;
+        setConnectStatus('Reaching PC — ice:' + pc.iceConnectionState + ' conn:' + pc.connectionState + ' gathering:' + pc.iceGatheringState);
+      };
+      report();
+      pc.addEventListener('iceconnectionstatechange', report);
+      pc.addEventListener('connectionstatechange', report);
+      pc.addEventListener('icegatheringstatechange', report);
+    }, 300);
   });
 
   let videoAttached = false;
